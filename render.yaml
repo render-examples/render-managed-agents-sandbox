@@ -1,4 +1,5 @@
-# One-click deploy for the Render orchestrator.
+# TypeScript version of the root render.yaml. Same services, same settings.
+# Deploy it with New > Blueprint and set Blueprint Path to orchestrator-ts/render.yaml.
 #  - claude-sandbox-orchestrator: always-on background worker. It claims Managed Agents
 #    sessions and runs each one in its own Render sandbox.
 #  - claude-sandbox-snapshot: daily cron that rebuilds the snapshot with Anthropic's SDK preinstalled.
@@ -22,16 +23,16 @@ envVarGroups:
 services:
   - type: worker
     name: claude-sandbox-orchestrator
-    runtime: python
+    runtime: node
     region: oregon
     plan: starter
-    autoDeployTrigger: 'off'  # copies made with the Deploy to Render button don't follow this repo
-    buildCommand: pip install -r requirements.txt
-    startCommand: python -m orchestrator.main
+    autoDeployTrigger: 'off'
+    buildCommand: cd orchestrator-ts && npm ci && npm run build
+    startCommand: node orchestrator-ts/dist/main.js
     envVars:
       - fromGroup: claude-sandbox
-      - key: PYTHON_VERSION
-        value: 3.12.7
+      - key: NODE_VERSION
+        value: "22"
       - key: SANDBOX_TIMEOUT_SECONDS
         value: "3600"
       - key: MAX_CONCURRENT_SESSIONS
@@ -45,14 +46,14 @@ services:
 
   - type: cron
     name: claude-sandbox-snapshot
-    runtime: python
+    runtime: node
     region: oregon
     plan: starter
-    autoDeployTrigger: 'off'  # copies made with the Deploy to Render button don't follow this repo
+    autoDeployTrigger: 'off'
     schedule: "0 6 * * *"
-    buildCommand: pip install -r requirements.txt
-    startCommand: python scripts/build_snapshot.py
+    buildCommand: cd orchestrator-ts && npm ci && npm run build
+    startCommand: node orchestrator-ts/dist/build-snapshot.js
     envVars:
       - fromGroup: claude-sandbox
-      - key: PYTHON_VERSION
-        value: 3.12.7
+      - key: NODE_VERSION
+        value: "22"
