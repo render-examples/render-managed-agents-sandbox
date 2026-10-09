@@ -1,0 +1,14 @@
+{
+  "name": "render-claude-managed-agents",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.131.0",
+    "@renderinc/sdk": "1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3"
+  }
+}

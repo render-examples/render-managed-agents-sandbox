@@ -1,0 +1,59 @@
+# TypeScript version of the root render.yaml. Same services, same settings.
+# Deploy it with New > Blueprint and set Blueprint Path to orchestrator-ts/render.yaml.
+#  - claude-sandbox-orchestrator: always-on background worker. It claims Managed Agents
+#    sessions and runs each one in its own Render sandbox.
+#  - claude-sandbox-snapshot: daily cron that rebuilds the snapshot with Anthropic's SDK preinstalled.
+#    Snapshots expire after three days, so a daily rebuild keeps one available.
+envVarGroups:
+  - name: claude-sandbox
+    envVars:
+      - key: ANTHROPIC_ENVIRONMENT_ID
+        sync: false
+      - key: ANTHROPIC_ENVIRONMENT_KEY
+        sync: false
+      - key: RENDER_API_KEY
+        sync: false
+      - key: RENDER_WORKSPACE_ID
+        sync: false
+      - key: SANDBOX_SNAPSHOT_NAME
+        value: claude-worker
+      - key: ANTHROPIC_SDK_VERSION
+        value: 1.12.1
+
+services:
+  - type: worker
+    name: claude-sandbox-orchestrator
+    runtime: node
+    region: oregon
+    plan: starter
+    autoDeployTrigger: 'off'
+    buildCommand: cd orchestrator-ts && npm ci && npm run build
+    startCommand: node orchestrator-ts/dist/main.js
+    envVars:
+      - fromGroup: claude-sandbox
+      - key: NODE_VERSION
+        value: "22"
+      - key: SANDBOX_TIMEOUT_SECONDS
+        value: "3600"
+      - key: MAX_CONCURRENT_SESSIONS
+        value: "20"
+      - key: SANDBOX_NETWORK_POLICY
+        value: allow-list
+      - key: SANDBOX_ALLOWED_DOMAINS
+        value: api.anthropic.com,pypi.org,files.pythonhosted.org
+      - key: WORKER_MAX_IDLE
+        value: 60s
+
+  - type: cron
+    name: claude-sandbox-snapshot
+    runtime: node
+    region: oregon
+    plan: starter
+    autoDeployTrigger: 'off'
+    schedule: "0 6 * * *"
+    buildCommand: cd orchestrator-ts && npm ci && npm run build
+    startCommand: node orchestrator-ts/dist/build-snapshot.js
+    envVars:
+      - fromGroup: claude-sandbox
+      - key: NODE_VERSION
+        value: "22"

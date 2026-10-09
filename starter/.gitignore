@@ -1,0 +1,5 @@
+.venv/
+node_modules/
+session.json
+__pycache__/
+results/
