@@ -1,7 +1,6 @@
 # Claude Managed Agents on Render: starter
 
-Follow the guide at https://render.com/docs/sandboxes-claude-managed-agents
-(or the same route on the local website preview before publication).
+Follow the guide at https://render.com/docs/sandboxes-claude-managed-agents.
 
 These helpers run on your machine. Choose `typescript` or `python`; both do the same
 thing and give the agent the same JavaScript task. The program in `fixture/` is broken
