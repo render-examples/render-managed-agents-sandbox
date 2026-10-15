@@ -178,7 +178,7 @@ The orchestrator reads its settings from environment variables:
 | `WORKER_MAX_IDLE` | `60s` | How long a session can stay idle before its worker exits and the sandbox is saved and deleted. |
 | `SANDBOX_SNAPSHOT_NAME` | `claude-worker` in the Blueprint, unset otherwise | Snapshot to start sandboxes from. Falls back to the base image if missing. |
 | `SANDBOX_NETWORK_POLICY` | `allow-list` | `allow-list`, `allow-all`, or `deny-all`. |
-| `SANDBOX_ALLOWED_DOMAINS` | Anthropic and GitHub | Domains sandboxes can reach under `allow-list`. |
+| `SANDBOX_ALLOWED_DOMAINS` | `api.anthropic.com,pypi.org,files.pythonhosted.org` | Domains sandboxes can reach under `allow-list`. |
 | `ANTHROPIC_SDK_VERSION` | `1.12.1` | Version of Anthropic's Python SDK the worker uses inside sandboxes. |
 | `FORWARD_ENVIRONMENT_KEY` | `false` | Also give sandboxes the environment key. See [Security](#security). |
 | `SESSION_PERSISTENCE` | `snapshot` | Save each idle session's files and restore them on its next message. `runtime` also saves memory and running processes. `none` turns it off. |

@@ -1,5 +1,6 @@
-# TypeScript version of the root render.yaml. Same services, same settings.
-# Deploy it with New > Blueprint and set Blueprint Path to orchestrator-ts/render.yaml.
+# Blueprint for the TypeScript orchestrator. Deploy it with the TypeScript Deploy to Render button
+# in README.md, or with New > Blueprint and Blueprint Path set to orchestrator-ts/render.yaml.
+# Commands run from the repository root.
 #  - claude-sandbox-orchestrator: always-on background worker. It claims Managed Agents
 #    sessions and runs each one in its own Render sandbox.
 #  - claude-sandbox-snapshot: daily cron that rebuilds the snapshot with Anthropic's SDK preinstalled.

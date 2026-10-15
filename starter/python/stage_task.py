@@ -14,7 +14,7 @@ fixture = Path(__file__).resolve().parent.parent / "fixture"
 sandboxes = Render().experimental.sandboxes
 options = {"timeout_seconds": 900, "network_policy": "deny-all"}
 
-# Start from the orchestrator's prepared snapshot, so ant is already installed.
+# Start from the orchestrator's prepared snapshot, so Anthropic's SDK is already installed.
 try:
     sandbox = sandboxes.create(snapshot_name="claude-worker", **options)
 except SnapshotNotFoundError:
