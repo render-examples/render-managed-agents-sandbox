@@ -9,6 +9,20 @@ const prompt = readFileSync(new URL('../prompt.txt', import.meta.url), 'utf8')
 const client = new Anthropic()
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
+// After WORKER_MAX_IDLE, the orchestrator saves /workspace as a new claude-session-<ID> snapshot.
+// An earlier turn can have left one with the same name, so remember those and wait for a new ID.
+const sandboxes = new Render().experimental.sandboxes
+const name = `claude-session-${state.session_id}`
+const sessionSnapshots = async () => {
+  const page = await sandboxes.snapshots.list({
+    sandboxGroupId: state.sandbox_group_id,
+    status: ['available'],
+    limit: 100,
+  })
+  return page.map((s) => s.snapshot).filter((s) => s.name === name)
+}
+const known = new Set((await sessionSnapshots()).map((s) => s.id))
+
 const signal = AbortSignal.timeout(600_000)
 const stream = await client.beta.sessions.events.stream(
   state.session_id,
@@ -39,16 +53,8 @@ console.log(
   '\nTurn completed. Waiting for the orchestrator to save the sandbox...'
 )
 
-// After WORKER_MAX_IDLE, the orchestrator saves /workspace as a new claude-session-<ID> snapshot.
-const sandboxes = new Render().experimental.sandboxes
-const name = `claude-session-${state.session_id}`
 for (let i = 0; i < 60; i++) {
-  const page = await sandboxes.snapshots.list({
-    sandboxGroupId: state.sandbox_group_id,
-    status: ['available'],
-    limit: 100,
-  })
-  const saved = page.map((s) => s.snapshot).find((s) => s.name === name)
+  const saved = (await sessionSnapshots()).find((s) => !known.has(s.id))
   if (saved) {
     writeFileSync(
       'session.json',

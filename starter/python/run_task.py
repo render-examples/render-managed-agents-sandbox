@@ -10,6 +10,20 @@ state = json.loads(Path("session.json").read_text())
 prompt = (Path(__file__).resolve().parent.parent / "prompt.txt").read_text()
 client = anthropic.Anthropic(timeout=600)
 
+# After WORKER_MAX_IDLE, the orchestrator saves /workspace as a new claude-session-<ID> snapshot.
+# An earlier turn can have left one with the same name, so remember those and wait for a new ID.
+sandboxes = Render().experimental.sandboxes
+name = f"claude-session-{state['session_id']}"
+
+
+def session_snapshots():
+    page = sandboxes.snapshots.list(sandbox_group_id=state["sandbox_group_id"],
+                                    status="available", limit=100)
+    return [s for s in page.snapshots if s.name == name]
+
+
+known = {s.id for s in session_snapshots()}
+
 with client.beta.sessions.events.stream(state["session_id"]) as stream:
     client.beta.sessions.events.send(
         state["session_id"],
@@ -36,13 +50,8 @@ with client.beta.sessions.events.stream(state["session_id"]) as stream:
             break
 print("\nTurn completed. Waiting for the orchestrator to save the sandbox...")
 
-# After WORKER_MAX_IDLE, the orchestrator saves /workspace as a new claude-session-<ID> snapshot.
-sandboxes = Render().experimental.sandboxes
-name = f"claude-session-{state['session_id']}"
 for _ in range(60):
-    page = sandboxes.snapshots.list(sandbox_group_id=state["sandbox_group_id"],
-                                    status="available", limit=100)
-    saved = next((s for s in page.snapshots if s.name == name), None)
+    saved = next((s for s in session_snapshots() if s.id not in known), None)
     if saved:
         state["result_snapshot_id"] = saved.id
         Path("session.json").write_text(json.dumps(state, indent=2))

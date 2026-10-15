@@ -1,5 +1,6 @@
-# TypeScript version of the root render.yaml. Same services, same settings.
-# Deploy it with New > Blueprint and set Blueprint Path to orchestrator-ts/render.yaml.
+# Blueprint for the Python orchestrator. Deploy it with the Python Deploy to Render button
+# in README.md, or with New > Blueprint and Blueprint Path set to orchestrator/render.yaml.
+# Commands run from the repository root.
 #  - claude-sandbox-orchestrator: always-on background worker. It claims Managed Agents
 #    sessions and runs each one in its own Render sandbox.
 #  - claude-sandbox-snapshot: daily cron that rebuilds the snapshot with Anthropic's SDK preinstalled.
@@ -23,16 +24,16 @@ envVarGroups:
 services:
   - type: worker
     name: claude-sandbox-orchestrator
-    runtime: node
+    runtime: python
     region: oregon
     plan: starter
-    autoDeployTrigger: 'off'
-    buildCommand: cd orchestrator-ts && npm ci && npm run build
-    startCommand: node orchestrator-ts/dist/main.js
+    autoDeployTrigger: 'off'  # copies made with the Deploy to Render button don't follow this repo
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m orchestrator.main
     envVars:
       - fromGroup: claude-sandbox
-      - key: NODE_VERSION
-        value: "22"
+      - key: PYTHON_VERSION
+        value: 3.12.7
       - key: SANDBOX_TIMEOUT_SECONDS
         value: "3600"
       - key: MAX_CONCURRENT_SESSIONS
@@ -46,14 +47,14 @@ services:
 
   - type: cron
     name: claude-sandbox-snapshot
-    runtime: node
+    runtime: python
     region: oregon
     plan: starter
-    autoDeployTrigger: 'off'
+    autoDeployTrigger: 'off'  # copies made with the Deploy to Render button don't follow this repo
     schedule: "0 6 * * *"
-    buildCommand: cd orchestrator-ts && npm ci && npm run build
-    startCommand: node orchestrator-ts/dist/build-snapshot.js
+    buildCommand: pip install -r requirements.txt
+    startCommand: python scripts/build_snapshot.py
     envVars:
       - fromGroup: claude-sandbox
-      - key: NODE_VERSION
-        value: "22"
+      - key: PYTHON_VERSION
+        value: 3.12.7

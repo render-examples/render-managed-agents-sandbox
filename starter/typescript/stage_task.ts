@@ -11,7 +11,7 @@ const options = {
   networkPolicy: { default: 'deny-all' as const },
 }
 
-// Start from the orchestrator's prepared snapshot, so ant is already installed.
+// Start from the orchestrator's prepared snapshot, so Anthropic's SDK is already installed.
 const sandbox = await sandboxes
   .create({ ...options, snapshotName: 'claude-worker' })
   .catch((e) =>
